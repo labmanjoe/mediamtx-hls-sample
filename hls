@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# https://ffmpeg.org/ffmpeg-formats.html
+rm hls_out/*.ts
+rm hls_out/index.m3u8
+
+ffmpeg/ffmpeg \
+ -loglevel info \
+ -i rtsp://localhost:8554/test-stream \
+ -vsync 0 \
+ -copyts \
+ -acodec aac \
+ -vcodec h264 \
+ -pix_fmt yuv420p \
+ -g 1 \
+ -movflags frag_keyframe \
+ -hls_flags delete_segments+append_list \
+ -f hls \
+ -hls_time 5 \
+ -hls_init_time 2 \
+ -hls_list_size 2 \
+ -hls_delete_threshold 2 \
+ -hls_segment_type mpegts \
+ -hls_segment_filename 'hls_out/%d.ts' \
+ hls_out/index.m3u8
+
+exit
+
+## some things that I had tried that may or may not matter
+
+ -hls_playlist_type event \
+		    +empty_moov \     
+-hls_base_url https://polytard.local/ \

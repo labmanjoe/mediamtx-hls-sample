@@ -1,0 +1,33 @@
+#!/bin/bash
+
+capass=capass
+
+if [ ! -f CA-KEY.key ]
+then	
+	openssl genrsa -aes128 -passout pass:"$capass" -out CA-KEY.key 2048
+	openssl req -passin pass:"$capass" -x509 -new -nodes -key CA-KEY.key -sha256 -days 3650 -subj "/C=US/ST=California/L=Alameda/O=FakeCerts-r-US/CN=Primes4u" -out myCA-root.pem
+
+fi
+
+openssl genrsa -out host.key
+openssl req -new -key host.key -subj "/C=US/ST=California/L=Alameda/O=HLS Test/CN=Primes4u/CN=hlstest.anakata.org" -out host.csr 
+
+cat <<EOF > san.conf
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1=localhost
+DNS.2=polytard
+DNS.3=polytard.local
+DNS.4=polytard.r.anakata.org
+IP.1=192.168.192.231
+IP.2=127.0.0.1
+EOF
+
+openssl x509 -req -in host.csr -CA myCA-root.pem -CAkey CA-KEY.key -CAcreateserial -passin pass:"$capass" -out host.crt -days 365 -sha256 -extfile san.conf 
+
+## combine key + cert for webfsd server
+cat host.key host.crt >host.keycrt

@@ -1,0 +1,22 @@
+diff --git a/libavformat/hlsenc.c b/libavformat/hlsenc.c
+index bde7230036..63b4c7d254 100644
+--- a/libavformat/hlsenc.c
++++ b/libavformat/hlsenc.c
+@@ -2505,6 +2505,8 @@ static int hls_write_packet(AVFormatContext *s, AVPacket *pkt)
+     can_split = can_split && (pkt->pts - vs->end_pts > 0);
+     if (vs->packets_written && can_split && av_compare_ts(pkt->pts - vs->start_pts, st->time_base,
+                                                           end_pts, AV_TIME_BASE_Q) >= 0) {
++
++        av_log(s, AV_LOG_INFO, "BASIC_HLS_PoC: splitting!!\n");
+         int64_t new_start_pos;
+         int byterange_mode = (hls->flags & HLS_SINGLE_FILE) || (hls->max_seg_size > 0);
+ 
+@@ -2573,6 +2575,8 @@ static int hls_write_packet(AVFormatContext *s, AVPacket *pkt)
+                 set_http_options(s, &options, hls);
+ 
+                 ret = hlsenc_io_open(s, &vs->out, filename, &options);
++                av_log(s, AV_LOG_INFO, "BASIC_HLS_PoC: log statement when HLS cuts segment. new segment filename: %s\n",
++		       filename);
+                 if (ret < 0) {
+                     av_log(s, hls->ignore_io_errors ? AV_LOG_WARNING : AV_LOG_ERROR,
+                            "Failed to open file '%s'\n", filename);
